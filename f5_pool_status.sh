@@ -13,12 +13,13 @@ get_pool_status() {
     -X GET "https://$F5_HOST/mgmt/tm/ltm/pool/~Common~$POOL/stats"
 }
 
-echo
-
 # Call the function
-POOL_AVAILABILITY_STATUS=$(get_pool_status | jq '.entries[].nestedStats.entries | ."status.availabilityState"' | jq '.description' | tr -d '"')
 
-POOL_STATUS=$(get_pool_status | jq '.entries[].nestedStats.entries | ."status.enabledState"' | jq '.description' | tr -d '"')
+get_pool_status > temp.txt
+
+POOL_AVAILABILITY_STATUS=$(cat temp.txt | jq '.entries[].nestedStats.entries | ."status.availabilityState"' | jq '.description' | tr -d '"')
+
+POOL_STATUS=$(cat temp.txt | jq '.entries[].nestedStats.entries | ."status.enabledState"' | jq '.description' | tr -d '"')
 
 jq -nc \
  --arg lb_host "$F5_HOST"\
@@ -31,3 +32,4 @@ jq -nc \
     "POOL_AVAILABILITY_STATUS": $availability,
     "POOL_STATUS": $pool_status
   }'
+rm temp.txt
